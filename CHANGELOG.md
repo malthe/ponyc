@@ -10,6 +10,11 @@ All notable changes to the Pony compiler and standard library will be documented
 
 ### Changed
 
+- `String.cstring()` now always returns a null-terminated string
+  (which may result in a copy) while `cpointer()` (also available on
+  `Array` objects) returns a pointer to the underlying array as-is
+  (issue #1309).
+
 ## [0.5.1] - 2016-10-15
 
 ### Fixed
