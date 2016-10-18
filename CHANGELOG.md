@@ -10,6 +10,9 @@ All notable changes to the Pony compiler and standard library will be documented
 
 ### Changed
 
+- `String.split` is now zero-copy. If an empty string is used as the delimiter
+  then the method splits on every character.
+
 - `String.cstring()` now always returns a null-terminated string
   (which may result in a copy) while `cpointer()` (also available on
   `Array` objects) returns a pointer to the underlying array as-is

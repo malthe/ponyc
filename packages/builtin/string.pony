@@ -985,7 +985,7 @@ actor Main
     end
     this
 
-  fun split(delim: String = " \t\v\f\r\n", n: USize = 0): Array[String] iso^ =>
+  fun val split(delim: String = " \t\v\f\r\n", n: USize = 0): Array[String] val^ =>
     """
     Split the string into an array of strings. Any character in the delimiter
     string is accepted as a delimiter. If `n > 0`, then the split count is
@@ -993,57 +993,77 @@ actor Main
 
     Adjacent delimiters result in a zero length entry in the array. For
     example, `"1,,2".split(",") => ["1", "", "2"]`.
+
+    An empty string as delimiter will split at every character.
     """
     let result = recover Array[String] end
 
     if _size > 0 then
-      let chars = Array[U32](delim.size())
-
-      for rune in delim.runes() do
-        chars.push(rune)
-      end
-
-      var cur = recover String end
+      let ds = delim.size()
       var i = USize(0)
-      var occur = USize(0)
+      var j = USize(0)
+      var occur = USize(1)
 
-      try
+      if ds == 0 then
+        // This is the case with an empty string as delimiter which mean
+        // we split on each character.
         while i < _size do
-          (let c, let len) = utf32(i.isize())
-
-          if chars.contains(c) then
-            // If we find a delimeter, add the current string to the array.
-            occur = occur + 1
-
-            if (n > 0) and (occur >= n) then
-              break
-            end
-
-            result.push(cur = recover String end)
+          (let c, let len) = try
+            utf32(j.isize())
           else
-            // Add bytes to the current string.
-            var j = U8(0)
-
-            while j < len do
-              cur.push(_ptr._apply(i + j.usize()))
-              j = j + 1
-            end
+            break
           end
 
-          i = i + len.usize()
+          let ptr = recover _ptr._offset(i)._unsafe() end
+          let l = len.usize()
+          result.push(recover val from_cpointer(consume ptr, l, l) end)
+
+          i = i + l
+          occur = occur + 1
+
+          if (n > 0) and (occur == n) then
+            break
+          end
+        end
+      else
+        // Note that the actual number of runes found in the delimiter
+        // string could be less than what we allocate here.
+        let chars = Array[U32](ds)
+
+        for rune in delim.runes() do
+          chars.push(rune)
+        end
+
+        try
+          while j < _size do
+            (let c, let len) = utf32(j.isize())
+
+            if chars.contains(c) then
+              // If we find a delimeter, add the current string to the array.
+              if (n > 0) and (occur == n) then
+                break
+              end
+
+              let ptr = recover _ptr._offset(i)._unsafe() end
+              let l = j - i
+              result.push(recover val from_cpointer(consume ptr, l, l) end)
+              i = j + len.usize()
+              occur = occur + 1
+            end
+            j = j + len.usize()
+          end
         end
       end
 
-      // Add all remaining bytes to the current string.
-      while i < _size do
-        cur.push(_ptr._apply(i))
-        i = i + 1
+      // Add all remaining bytes.
+      if i < _size then
+        let ptr = recover _ptr._offset(i)._unsafe() end
+        let l = _size - i
+        result.push(recover val from_cpointer(consume ptr, l, l) end)
       end
-
-      result.push(consume cur)
     end
 
-    consume result
+    recover val result end
 
   fun ref strip(s: String box = " \t\v\f\r\n"): String ref^ =>
     """

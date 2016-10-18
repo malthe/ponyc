@@ -25,7 +25,7 @@ class iso _TestIniParse is UnitTest
              key 1   =   value 1;Not a comment
       """
 
-    let array: Array[String] = source.split("\r\n")
+    let array = source.split("\r\n")
     let map = IniParse(array.values())
 
     h.assert_eq[Bool](map.contains("Section 2"), true)

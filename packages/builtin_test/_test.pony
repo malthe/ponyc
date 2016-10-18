@@ -535,6 +535,20 @@ class iso _TestStringSplit is UnitTest
     h.assert_eq[String](r(1), "2")
     h.assert_eq[String](r(2), "3  4")
 
+    r = "1 2  3".split("")
+    h.assert_eq[USize](r.size(), 6)
+    h.assert_eq[String](r(0), "1")
+    h.assert_eq[String](r(1), " ")
+    h.assert_eq[String](r(2), "2")
+    h.assert_eq[String](r(3), " ")
+    h.assert_eq[String](r(4), " ")
+    h.assert_eq[String](r(5), "3")
+
+    r = "1 2 3  4".split("" where n = 3)
+    h.assert_eq[USize](r.size(), 3)
+    h.assert_eq[String](r(0), "1")
+    h.assert_eq[String](r(1), " ")
+    h.assert_eq[String](r(2), "2 3  4")
 
 class iso _TestStringJoin is UnitTest
   """
